@@ -44,7 +44,7 @@ resource "azurerm_kubernetes_cluster" "this" {
     pod_cidr            = var.pod_cidr
     service_cidr        = var.service_cidr
     dns_service_ip      = var.dns_service_ip
-    outbound_type       = "userDefinedRouting"
+    outbound_type       = "loadBalancer"
   }
 
   default_node_pool {
