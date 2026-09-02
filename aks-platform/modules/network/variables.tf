@@ -29,7 +29,7 @@ variable "jumpbox_subnet_cidr" {
 }
 
 variable "jumpbox_allowed_ssh_source_ip" {
-  description = "The one real access control replacing Bastion - SSH to the jumpbox is only ever reachable from this specific IP/CIDR. Update this if your own IP changes."
+  description = "SSH to the jumpbox is only ever reachable from this specific IP/CIDR. Update this if your own IP changes."
   type        = string
 }
 

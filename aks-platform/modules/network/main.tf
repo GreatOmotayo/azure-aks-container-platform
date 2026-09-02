@@ -10,7 +10,7 @@ resource "azurerm_virtual_network" "this" {
 # --- AKS node subnet ---
 resource "azurerm_subnet" "aks" {
   name                 = "snet-aks-${var.environment}"
-  resource_group_name = var.resource_group_name
+  resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [var.aks_subnet_cidr]
 }
@@ -30,7 +30,7 @@ resource "azurerm_subnet_network_security_group_association" "aks" {
 # --- Jumpbox subnet ---
 resource "azurerm_subnet" "jumpbox" {
   name                 = "snet-jumpbox-${var.environment}"
-  resource_group_name = var.resource_group_name
+  resource_group_name  = var.resource_group_name
   virtual_network_name = azurerm_virtual_network.this.name
   address_prefixes     = [var.jumpbox_subnet_cidr]
 }

@@ -4,8 +4,8 @@ resource "azurerm_public_ip" "jumpbox" {
   location            = var.location
   resource_group_name = var.resource_group_name
   allocation_method   = "Static"
-  sku                  = "Standard"
-  tags                 = var.tags
+  sku                 = "Standard"
+  tags                = var.tags
 }
 
 # --- Network interface --- 
@@ -18,7 +18,7 @@ resource "azurerm_network_interface" "jumpbox" {
     name                          = "internal"
     subnet_id                     = var.subnet_id
     private_ip_address_allocation = "Dynamic"
-    public_ip_address_id         = azurerm_public_ip.jumpbox.id
+    public_ip_address_id          = azurerm_public_ip.jumpbox.id
   }
 
   tags = var.tags
@@ -35,7 +35,7 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
     prevent_destroy = true
   }
 
-  network_interface_ids = [azurerm_network_interface.jumpbox.id]
+  network_interface_ids           = [azurerm_network_interface.jumpbox.id]
   disable_password_authentication = true
   admin_ssh_key {
     username   = "azureuser"
@@ -44,7 +44,7 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
 
   os_disk {
     caching              = "ReadWrite"
-    storage_account_type = "Standard_LRS" 
+    storage_account_type = "Standard_LRS"
   }
 
   source_image_reference {
@@ -90,10 +90,10 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
 # --- Azure AD login extension --- 
 resource "azurerm_virtual_machine_extension" "aad_login" {
   name                       = "AADSSHLoginForLinux"
-  virtual_machine_id        = azurerm_linux_virtual_machine.jumpbox.id
+  virtual_machine_id         = azurerm_linux_virtual_machine.jumpbox.id
   publisher                  = "Microsoft.Azure.ActiveDirectory"
-  type                        = "AADSSHLoginForLinux"
-  type_handler_version      = "1.0"
+  type                       = "AADSSHLoginForLinux"
+  type_handler_version       = "1.0"
   auto_upgrade_minor_version = true
 }
 
@@ -103,5 +103,5 @@ resource "azurerm_role_assignment" "jumpbox_aad_login" {
 
   scope                = azurerm_linux_virtual_machine.jumpbox.id
   role_definition_name = "Virtual Machine Administrator Login"
-  principal_id          = each.value
+  principal_id         = each.value
 }

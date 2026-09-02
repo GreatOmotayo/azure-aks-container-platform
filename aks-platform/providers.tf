@@ -21,5 +21,5 @@ provider "azurerm" {
   }
   resource_provider_registrations = "core"
   subscription_id                 = var.subscription_id
-  storage_use_azuread = true
+  storage_use_azuread             = true
 }
