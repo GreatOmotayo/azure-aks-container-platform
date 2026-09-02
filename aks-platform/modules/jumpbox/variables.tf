@@ -21,7 +21,7 @@ variable "subnet_id" {
 variable "vm_size" {
   description = "VM size - small and cheap, since this machine only runs kubectl/az CLI sessions"
   type        = string
-  default     = "Standard_D2s_v6"
+  default     = "Standard_B2ls_v2" # Standard_B2ls_v2
 }
 
 variable "ssh_public_key" {

@@ -1,9 +1,4 @@
 # --- Subscription ---
-# Single subscription now, not a Platform/Production split. That split
-# existed specifically to mirror sharing infrastructure with a hub
-# network project - with this project fully standalone (see
-# DECISIONS.md), there's no shared hub to separate from, so everything
-# lives in one subscription.
 variable "subscription_id" {
   description = "The single Azure subscription everything in this project lives in"
   type        = string
@@ -82,9 +77,9 @@ variable "kubernetes_version" {
 }
 
 variable "system_node_vm_size" {
-  description = "VM size for the system node pool - Standard_E2bds_v5 (EBDSv5 family), chosen after a real subscription quota check confirmed Dsv5 family has a hard 0 vCPU limit in this subscription/region."
+  description = "VM size for the system node pool - Standard_D2s_v6"
   type        = string
-  default     = "Standard_E2bds_v5"
+  default     = "Standard_D2s_v6"
 }
 
 variable "system_node_count" {
@@ -94,7 +89,7 @@ variable "system_node_count" {
 
 variable "user_node_vm_size" {
   type    = string
-  default = "Standard_E2bds_v5"
+  default = "Standard_D2s_v6"
 }
 
 variable "user_node_min_count" {
