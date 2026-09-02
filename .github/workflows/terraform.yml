@@ -18,19 +18,18 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  TF_VAR_subscription_id:            ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-  TF_VAR_client_id:                  ${{ secrets.AZURE_CLIENT_ID }}
-  TF_VAR_tenant_id:                  ${{ secrets.AZURE_TENANT_ID }}
-  TF_VAR_aks_admin_group_object_ids: ${{ secrets.AKS_ADMIN_GROUP_OBJECT_IDS }}
+  TF_VAR_subscription_id:               ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  TF_VAR_client_id:                     ${{ secrets.AZURE_CLIENT_ID }}
+  TF_VAR_tenant_id:                     ${{ secrets.AZURE_TENANT_ID }}
+  TF_VAR_aks_admin_group_object_ids:    ${{ secrets.AKS_ADMIN_GROUP_OBJECT_IDS }}
   TF_VAR_jumpbox_allowed_ssh_source_ip: ${{ vars.JUMPBOX_ALLOWED_SSH_SOURCE_IP }}
-  TF_VAR_ssh_public_key:             ${{ secrets.JUMPBOX_SSH_PUBLIC_KEY }}
-  TF_VAR_registry_name:              ${{ vars.ACR_NAME }}
-  TF_VAR_vault_name:                 ${{ vars.KEY_VAULT_NAME }}
-  TF_VAR_storage_account_name:       ${{ vars.STORAGE_ACCOUNT_NAME }}
-  ARM_CLIENT_ID:                     ${{ secrets.AZURE_CLIENT_ID }} 
-  ARM_TENANT_ID:                     ${{ secrets.AZURE_TENANT_ID }} 
-  ARM_SUBSCRIPTION_ID:               ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-  ARM_USE_OIDC:                      true
+  TF_VAR_ssh_public_key:                ${{ secrets.JUMPBOX_SSH_PUBLIC_KEY }}
+  TF_VAR_registry_name:                 ${{ vars.ACR_NAME }}
+  TF_VAR_vault_name:                    ${{ vars.KEY_VAULT_NAME }}
+  TF_VAR_storage_account_name:          ${{ vars.STORAGE_ACCOUNT_NAME }}
+  ARM_CLIENT_ID:                        ${{ secrets.AZURE_CLIENT_ID }} 
+  ARM_TENANT_ID:                        ${{ secrets.AZURE_TENANT_ID }} 
+  ARM_USE_OIDC:                         true
 
 defaults:
   run:
@@ -54,7 +53,7 @@ jobs:
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          subscription-id: ${{ secrets.AZURE_PLATFORM_SUBSCRIPTION_ID }}
 
       - name: Terraform fmt check
         run: terraform fmt -check -recursive
@@ -109,7 +108,7 @@ jobs:
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          subscription-id: ${{ secrets.AZURE_PLATFORM_SUBSCRIPTION_ID }}
 
       - name: Terraform Init
         run: terraform init
