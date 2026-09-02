@@ -3,11 +3,11 @@ data "azurerm_client_config" "current" {}
 # --- Own Log Analytics workspace ---
 resource "azurerm_log_analytics_workspace" "this" {
   name                = "log-${var.environment}"
-  location             = var.location
+  location            = var.location
   resource_group_name = azurerm_resource_group.app.name
-  sku                   = "PerGB2018"
-  retention_in_days    = 30
-  tags                  = var.project_tags
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+  tags                = var.project_tags
 }
 
 # --- App resource group ---
@@ -22,49 +22,49 @@ module "network" {
   source = "./modules/network"
 
   environment                   = var.environment
-  location                       = var.location
+  location                      = var.location
   resource_group_name           = azurerm_resource_group.app.name
-  vnet_cidr                      = var.vnet_cidr
-  aks_subnet_cidr                = var.aks_subnet_cidr
-  jumpbox_subnet_cidr            = var.jumpbox_subnet_cidr
+  vnet_cidr                     = var.vnet_cidr
+  aks_subnet_cidr               = var.aks_subnet_cidr
+  jumpbox_subnet_cidr           = var.jumpbox_subnet_cidr
   jumpbox_allowed_ssh_source_ip = var.jumpbox_allowed_ssh_source_ip
-  tags                            = var.project_tags
+  tags                          = var.project_tags
 }
 
 module "aks_private_dns" {
   source = "./modules/aks-private-dns"
 
-  location             = var.location
+  location            = var.location
   resource_group_name = azurerm_resource_group.app.name
-  environment           = var.environment
-  vnet_id               = module.network.vnet_id
-  tags                  = var.project_tags
+  environment         = var.environment
+  vnet_id             = module.network.vnet_id
+  tags                = var.project_tags
 }
 
 # --- Pre-created Container Insights Solution ---
 module "container_insights_solution" {
   source = "./modules/container-insights-solution"
 
-  location                       = var.location
+  location                      = var.location
   workspace_resource_group_name = azurerm_resource_group.app.name
   log_analytics_workspace_id    = azurerm_log_analytics_workspace.this.id
   log_analytics_workspace_name  = azurerm_log_analytics_workspace.this.name
-  tags                           = var.project_tags
+  tags                          = var.project_tags
 }
 
 module "aks" {
   source = "./modules/aks"
 
-  environment          = var.environment
-  location             = var.location
+  environment         = var.environment
+  location            = var.location
   resource_group_name = azurerm_resource_group.app.name
-  kubernetes_version   = var.kubernetes_version
+  kubernetes_version  = var.kubernetes_version
 
-  subnet_id            = module.network.aks_subnet_id
+  subnet_id           = module.network.aks_subnet_id
   private_dns_zone_id = module.aks_private_dns.zone_id
 
   log_analytics_workspace_id = azurerm_log_analytics_workspace.this.id
-  admin_group_object_ids      = var.aks_admin_group_object_ids
+  admin_group_object_ids     = var.aks_admin_group_object_ids
 
   system_node_vm_size = var.system_node_vm_size
   system_node_count   = var.system_node_count
@@ -83,7 +83,7 @@ resource "azurerm_role_assignment" "aks_rbac_admin" {
 
   scope                = module.aks.cluster_id
   role_definition_name = "Azure Kubernetes Service RBAC Cluster Admin"
-  principal_id          = each.value
+  principal_id         = each.value
 }
 
 # --- Jumpbox ---
@@ -92,11 +92,11 @@ module "jumpbox" {
 
   environment            = var.environment
   location               = var.location
-  resource_group_name   = azurerm_resource_group.app.name
+  resource_group_name    = azurerm_resource_group.app.name
   subnet_id              = module.network.jumpbox_subnet_id
   ssh_public_key         = var.ssh_public_key
   admin_group_object_ids = var.aks_admin_group_object_ids
-  tags                    = var.project_tags
+  tags                   = var.project_tags
 }
 
 # --- Container Registry ---
@@ -104,28 +104,28 @@ module "container_registry" {
   source = "./modules/container-registry"
 
   registry_name              = var.registry_name
-  location                    = var.location
+  location                   = var.location
   resource_group_name        = azurerm_resource_group.app.name
   kubelet_identity_object_id = module.aks.kubelet_identity_object_id
-  tags                        = var.project_tags
+  tags                       = var.project_tags
 }
 
 # --- CI's own push access ---
 resource "azurerm_role_assignment" "ci_acr_push" {
   scope                = module.container_registry.registry_id
   role_definition_name = "AcrPush"
-  principal_id          = data.azurerm_client_config.current.object_id
+  principal_id         = data.azurerm_client_config.current.object_id
 }
 
 # --- Key Vault ---
 module "key_vault" {
   source = "./modules/key-vault"
 
-  vault_name           = var.vault_name
-  location             = var.location
-  resource_group_name = azurerm_resource_group.app.name
+  vault_name             = var.vault_name
+  location               = var.location
+  resource_group_name    = azurerm_resource_group.app.name
   admin_group_object_ids = var.aks_admin_group_object_ids
-  tags                  = var.project_tags
+  tags                   = var.project_tags
 }
 
 # --- Storage Account (Queue + Table) ---
@@ -134,21 +134,21 @@ module "storage" {
 
   storage_account_name = var.storage_account_name
   location             = var.location
-  resource_group_name = azurerm_resource_group.app.name
-  tags                  = var.project_tags
+  resource_group_name  = azurerm_resource_group.app.name
+  tags                 = var.project_tags
 }
 
 # --- Workload Identity federation ---
 module "workload_identity" {
   source = "./modules/workload-identity"
 
-  environment          = var.environment
-  location             = var.location
+  environment         = var.environment
+  location            = var.location
   resource_group_name = azurerm_resource_group.app.name
   aks_oidc_issuer_url = module.aks.oidc_issuer_url
-  key_vault_id         = module.key_vault.vault_id
-  storage_account_id   = module.storage.storage_account_id
-  tags                  = var.project_tags
+  key_vault_id        = module.key_vault.vault_id
+  storage_account_id  = module.storage.storage_account_id
+  tags                = var.project_tags
 }
 
 # --- Key Vault secret: storage-account-name ---
@@ -169,11 +169,11 @@ resource "azurerm_key_vault_secret" "storage_account_name" {
 module "velero_identity" {
   source = "./modules/velero-identity"
 
-  environment          = var.environment
-  location             = var.location
-  resource_group_name = azurerm_resource_group.app.name
-  aks_oidc_issuer_url = module.aks.oidc_issuer_url
-  storage_account_id   = module.storage.storage_account_id
+  environment                  = var.environment
+  location                     = var.location
+  resource_group_name          = azurerm_resource_group.app.name
+  aks_oidc_issuer_url          = module.aks.oidc_issuer_url
+  storage_account_id           = module.storage.storage_account_id
   velero_backup_container_name = module.storage.velero_backup_container_name
-  tags                  = var.project_tags
+  tags                         = var.project_tags
 }
