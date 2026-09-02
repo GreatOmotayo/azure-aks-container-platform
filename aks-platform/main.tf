@@ -152,9 +152,9 @@ module "workload_identity" {
 }
 
 # --- Key Vault secret: storage-account-name ---
-resource "time_sleep" "wait_for_kv_secrets_officer_propagation" {
-  depends_on      = [module.key_vault]
-  create_duration = "60s"
+resource "time_sleep" "wait_for_kv_propagation" {
+  depends_on      = [module.key_vault, module.storage]
+  create_duration = "180s"
 }
 
 resource "azurerm_key_vault_secret" "storage_account_name" {
@@ -162,7 +162,7 @@ resource "azurerm_key_vault_secret" "storage_account_name" {
   value        = module.storage.storage_account_name
   key_vault_id = module.key_vault.vault_id
 
-  depends_on = [time_sleep.wait_for_kv_secrets_officer_propagation]
+  depends_on = [time_sleep.wait_for_kv_propagation]
 }
 
 # --- Velero's dedicated Workload Identity ---
