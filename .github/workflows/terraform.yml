@@ -51,6 +51,10 @@ jobs:
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Terraform fmt check
         run: terraform fmt -check -recursive
@@ -102,10 +106,13 @@ jobs:
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Terraform Init
-        run: |
-          terraform init
+        run: terraform init
 
       - name: Terraform apply
         run: terraform apply -auto-approve
