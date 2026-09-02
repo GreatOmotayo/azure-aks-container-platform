@@ -27,6 +27,10 @@ env:
   TF_VAR_registry_name:              ${{ vars.ACR_NAME }}
   TF_VAR_vault_name:                 ${{ vars.KEY_VAULT_NAME }}
   TF_VAR_storage_account_name:       ${{ vars.STORAGE_ACCOUNT_NAME }}
+  ARM_CLIENT_ID:                     ${{ secrets.AZURE_CLIENT_ID }} 
+  ARM_TENANT_ID:                     ${{ secrets.AZURE_TENANT_ID }} 
+  ARM_SUBSCRIPTION_ID:               ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_USE_OIDC:                      true
 
 defaults:
   run:
@@ -47,21 +51,13 @@ jobs:
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Terraform fmt check
         run: terraform fmt -check -recursive
 
       - name: Terraform Init
         run: |
-          terraform init \
-            -backend-config="use_oidc=true" \
-            -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-            -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
-            -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}"
+          terraform init
 
       - name: Terraform validate
         run: terraform validate
@@ -106,18 +102,10 @@ jobs:
 
       - name: Azure login (OIDC)
         uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Terraform Init
         run: |
-          terraform init \
-            -backend-config="use_oidc=true" \
-            -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
-            -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
-            -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}"
+          terraform init
 
       - name: Terraform apply
         run: terraform apply -auto-approve
