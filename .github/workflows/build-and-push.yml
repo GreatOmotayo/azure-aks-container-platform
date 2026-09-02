@@ -1,0 +1,104 @@
+name: Build and Push
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/aduke/**"
+      - "apps/worker/**"
+  workflow_dispatch:
+    inputs:
+      force_build:
+        description: "Build and push even if no changes are detected under apps/"
+        type: boolean
+        default: false
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        app: [aduke, worker]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Check for changes in ${{ matrix.app }}
+        id: changed
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.force_build }}" = "true" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          elif git diff --name-only HEAD~1 HEAD | grep -q "^apps/${{ matrix.app }}/"; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Log in to ACR
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          az acr login --name ${{ vars.ACR_NAME }}
+
+      - name: Build image
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          IMAGE_TAG="${{ github.sha }}"
+          docker build -t ${{ vars.ACR_LOGIN_SERVER }}/${{ matrix.app }}:$IMAGE_TAG apps/${{ matrix.app }}
+
+      - name: Scan image for vulnerabilities (Trivy)
+        if: steps.changed.outputs.changed == 'true'
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: 'image'
+          image-ref: ${{ vars.ACR_LOGIN_SERVER }}/${{ matrix.app }}:${{ github.sha }}
+          format: 'table'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+          ignore-unfixed: true
+
+      - name: Push image
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          IMAGE_TAG="${{ github.sha }}"
+          docker push ${{ vars.ACR_LOGIN_SERVER }}/${{ matrix.app }}:$IMAGE_TAG
+
+      - name: Update chart's image tag
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          IMAGE_TAG="${{ github.sha }}"
+          sed -i "s|tag: .*|tag: \"$IMAGE_TAG\"|" charts/${{ matrix.app }}/values.yaml
+
+      - name: Open PR with the tag bump
+        if: steps.changed.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          add-paths: charts/${{ matrix.app }}/values.yaml
+          commit-message: "chore: bump ${{ matrix.app }} image tag to ${{ github.sha }}"
+          title: "chore: bump ${{ matrix.app }} image tag to ${{ github.sha }}"
+          body: |
+            Automated image tag bump for **${{ matrix.app }}**, following a
+            successful build, Trivy scan, and push to ACR.
+
+            - Image: `${{ vars.ACR_LOGIN_SERVER }}/${{ matrix.app }}:${{ github.sha }}`
+            - Triggered by commit: ${{ github.sha }}
+
+            Requires review and merge before ArgoCD picks this up - this PR
+            does not auto-merge.
+          branch: "bump-${{ matrix.app }}-${{ github.sha }}"
+          base: main
+          delete-branch: true

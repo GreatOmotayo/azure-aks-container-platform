@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: velero
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://vmware-tanzu.github.io/helm-charts
+    chart: velero
+    targetRevision: "8.1.0"
+    helm:
+      values: |
+        kubectl:
+          image:
+            repository: docker.io/bitnamilegacy/kubectl
+            tag: "1.33.4"
+
+        podLabels:
+          azure.workload.identity/use: "true"
+
+        serviceAccount:
+          server:
+            create: true
+            name: velero
+            annotations:
+              azure.workload.identity/client-id: "REPLACE_WITH_TERRAFORM_OUTPUT"
+
+        credentials:
+          useSecret: false
+
+        configuration:
+          backupStorageLocation:
+            - name: default
+              provider: azure
+              bucket: "REPLACE_WITH_TERRAFORM_OUTPUT"
+              config:
+                storageAccount: "REPLACE_WITH_TERRAFORM_OUTPUT"
+                resourceGroup: "rg-aks-app"
+                useAAD: "true"
+
+        initContainers:
+          - name: velero-plugin-for-azure
+            image: velero/velero-plugin-for-microsoft-azure:v1.11.0
+            volumeMounts:
+              - mountPath: /target
+                name: plugins
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: velero
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

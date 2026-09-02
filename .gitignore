@@ -1,0 +1,31 @@
+# --- Terraform ---
+# .terraform.lock.hcl IS committed deliberately (reproducible provider
+# versions) - everything below it is NOT.
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+override.*.tfvars
+override.*.tfvars.json
+.terraformrc
+terraform.rc
+
+# --- Node (apps/aduke, apps/worker) ---
+node_modules/
+npm-debug.log*
+
+# --- OS/editor noise ---
+.DS_Store
+*.swp
+
+# --- Personal working files, never committed ---
+PERSONAL-TESTING-CHECKLIST.md
+local/
+
+.cache/

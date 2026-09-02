@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+   name: aduke
+   namespace: {{ .Release.Namespace}}
+   labels:
+     app: aduke
+spec:
+   {{- if not .Values.autoscaling.enabled }}
+   replicas: {{ .Values.replicaCount }}
+   {{- end }}
+   selector:
+     matchLabels: 
+        app: aduke
+   template:
+     metadata:
+       labels: 
+         app: aduke
+         azure.workload.identity/use: "true"
+     spec:
+       serviceAccountName: {{ .Values.serviceAccount.name }}
+       containers:
+        - name: aduke
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+          env:
+            - name: PORT
+              value: {{ .Values.service.targetPort | quote }}
+            - name: STORAGE_ACCOUNT_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.keyVault.secretName }}
+                  key: storageAccountName
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.liveness.path }}
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness.path }}
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+          volumeMounts:
+            - name: secrets-store-inline
+              mountPath: /mnt/secrets-store
+              readOnly: true
+       volumes:
+        - name: secrets-store-inline
+          csi: 
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: aduke-spc

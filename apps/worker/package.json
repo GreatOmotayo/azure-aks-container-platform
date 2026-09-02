@@ -1,0 +1,14 @@
+{
+  "name": "aks-worker",
+  "version": "1.0.0",
+  "description": "Queue-driven worker for the AKS container platform project - polls Storage Queue, does CPU-bound work, writes results to Table Storage",
+  "main": "src/worker.js",
+  "scripts": {
+    "start": "node src/worker.js"
+  },
+  "dependencies": {
+    "@azure/identity": "^4.4.1",
+    "@azure/storage-queue": "^12.24.0",
+    "@azure/data-tables": "^13.2.2"
+  }
+}

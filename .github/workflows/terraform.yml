@@ -1,0 +1,153 @@
+name: AKS Platform Infrastructure
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths: ["aks-platform/**"]
+  push:
+    branches: [main]
+    paths: ["aks-platform/**"]
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: aks-platform-group
+  cancel-in-progress: false
+
+env:
+  TF_VAR_subscription_id:            ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  TF_VAR_client_id:                  ${{ secrets.AZURE_CLIENT_ID }}
+  TF_VAR_tenant_id:                  ${{ secrets.AZURE_TENANT_ID }}
+  TF_VAR_aks_admin_group_object_ids: ${{ secrets.AKS_ADMIN_GROUP_OBJECT_IDS }}
+  TF_VAR_jumpbox_allowed_ssh_source_ip: ${{ vars.JUMPBOX_ALLOWED_SSH_SOURCE_IP }}
+  TF_VAR_ssh_public_key:             ${{ secrets.JUMPBOX_SSH_PUBLIC_KEY }}
+  TF_VAR_registry_name:              ${{ vars.ACR_NAME }}
+  TF_VAR_vault_name:                 ${{ vars.KEY_VAULT_NAME }}
+  TF_VAR_storage_account_name:       ${{ vars.STORAGE_ACCOUNT_NAME }}
+
+defaults:
+  run:
+    working-directory: aks-platform
+
+jobs:
+  plan:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="use_oidc=true" \
+            -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+            -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
+            -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}"
+
+      - name: Terraform validate
+        run: terraform validate
+
+      - name: Terraform plan
+        id: plan
+        run: terraform plan -no-color
+        continue-on-error: true
+
+      - name: Post plan output to PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const output = `#### Terraform Plan \n\`\`\`\n${{ steps.plan.outputs.stdout }}\n\`\`\``;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Fail job if plan failed
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+
+  apply:
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      id-token: write
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="use_oidc=true" \
+            -backend-config="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
+            -backend-config="tenant_id=${{ secrets.AZURE_TENANT_ID }}" \
+            -backend-config="client_id=${{ secrets.AZURE_CLIENT_ID }}"
+
+      - name: Terraform apply
+        run: terraform apply -auto-approve
+
+      - name: Ensure yq is installed
+        run: |
+          if ! command -v yq &> /dev/null; then
+            sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
+            sudo chmod +x /usr/local/bin/yq
+          fi
+
+      - name: Revert values.yaml to placeholders first
+        working-directory: .
+        run: ./scripts/revert-values.sh
+
+      - name: Populate values.yaml from terraform output
+        working-directory: .
+        run: ./scripts/populate-values.sh
+
+      - name: Open PR with populated values
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: "chore: populate values.yaml from terraform output"
+          title: "chore: populate values.yaml from terraform output"
+          body: |
+            Automated placeholder population, run immediately after a
+            successful `terraform apply`.
+
+            Requires review and merge before ArgoCD picks this up - this
+            PR does not auto-merge.
+          branch: "populate-values-${{ github.sha }}"
+          base: main
+          delete-branch: true

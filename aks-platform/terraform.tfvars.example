@@ -1,0 +1,47 @@
+# Copy this file to terraform.tfvars and fill in real values.
+# terraform.tfvars is gitignored - never commit real subscription IDs,
+# object IDs, or IPs into this example file.
+
+# --- Subscription ---
+# Single subscription now - this project is fully standalone, no longer
+# split across Platform/Production subscriptions (see DECISIONS.md).
+subscription_id = "00000000-0000-0000-0000-000000000000"
+client_id       = "00000000-0000-0000-0000-000000000000"
+tenant_id       = "00000000-0000-0000-0000-000000000000"
+
+# --- General ---
+location    = "centralus"
+environment = "production"
+
+# --- Standalone network ---
+# Defaults in variables.tf are usually fine as-is - only override if
+# these CIDRs collide with something else in your own environment.
+# vnet_cidr            = "10.10.0.0/16"
+# aks_subnet_cidr       = "10.10.0.0/22"
+# jumpbox_subnet_cidr   = "10.10.4.0/24"
+
+# The one real access control replacing Bastion (now removed) - only
+# this IP/CIDR can SSH to the jumpbox at all. Find your own with:
+# curl -s ifconfig.me
+jumpbox_allowed_ssh_source_ip = "00.00.00.00/32"
+
+# Paste the CONTENTS of your public key file, not a path to it.
+# e.g. cat ~/.ssh/id_ed25519.pub
+ssh_public_key = "ssh-ed25519 AAAA... your-email@example.com"
+
+# --- AKS cluster ---
+# az ad group show --group "<your admin group name>" --query id -o tsv
+aks_admin_group_object_ids = [
+  "00000000-0000-0000-0000-000000000000"
+]
+
+# --- ACR + Key Vault + Storage ---
+# All three below must be globally unique across ALL of Azure, not just
+# your subscription - pick something specific enough to avoid a
+# collision.
+registry_name = "omotayoaksregistry"
+vault_name     = "omotayo-aks-kv"
+
+# Storage Account names are the strictest: lowercase letters and numbers
+# ONLY, no hyphens at all.
+storage_account_name = "omotayoaksstorage"

@@ -1,0 +1,41 @@
+replicaCount: 2
+image:
+  repository: "omotayoaksregistry.azurecr.io/worker"
+  tag: "c17702b29317f2327303878b8ac03a43b9416074"
+  pullPolicy: IfNotPresent
+serviceAccount:
+  name: worker
+  azureClientId: "6d649d1e-7267-487c-8322-4bf2913b6d07"
+healthPort: 3001
+resources:
+  requests:
+    cpu: 250m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+probes:
+  liveness:
+    path: /healthz
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  readiness:
+    path: /ready
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+keyVault:
+  secretName: worker-storage-config
+  vaultUri: "https://omotayo-aks-kv.vault.azure.net/"
+  name: "omotayo-aks-kv"
+azureTenantId: "175d86cd-6e18-4ee9-84a6-c6b0d003ecc9"
+networkPolicy:
+  privateEndpointSubnetCidr: "10.1.1.0/24"

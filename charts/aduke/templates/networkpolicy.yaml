@@ -1,0 +1,52 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: aduke
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: aduke
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.networkPolicy.ingressControllerNamespace }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.service.targetPort }}
+
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels: 
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+    # Azure storage (Queue + Table) and key vault private endoints
+    # all 3 live in the production spoke's private endpoint subnet, so this single ipBlock rule covers all of them
+    - to:
+        - ipBlock:
+            cidr: {{ .Values.networkPolicy.privateEndpointSubnetCidr }}
+
+      ports:
+        - protocol: TCP
+          port: 443
+
+    # Entra ID token exchange - DefaultAzureCredential calls out to
+    # Entra ID directly from inside this pod to exchange its federated 
+    # Kubernetes token for a real Azure access token
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+
+      ports:
+        - protocol: TCP
+          port: 443
