@@ -46,7 +46,7 @@ jobs:
           elif git diff --name-only HEAD~1 HEAD | grep -q "^apps/${{ matrix.app }}/"; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
           else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Log in to ACR
