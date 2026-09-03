@@ -20,6 +20,18 @@ resource "azurerm_network_security_group" "aks" {
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags
+
+  security_rule {
+    name                       = "AllowHTTPHTTPSFromInternet"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["80", "443"]
+    source_address_prefix      = "Internet"
+    destination_address_prefix = "*"
+  }
 }
 
 resource "azurerm_subnet_network_security_group_association" "aks" {
@@ -40,7 +52,7 @@ resource "azurerm_network_security_group" "jumpbox" {
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags
-
+  
   security_rule {
     name                       = "AllowSSHFromMyIP"
     priority                   = 100
