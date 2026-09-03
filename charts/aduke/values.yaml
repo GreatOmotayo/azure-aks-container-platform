@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: "omotayoaksregistry.azurecr.io/aduke"
-  tag: "c17702b29317f2327303878b8ac03a43b9416074"
+  tag: "46fab640ebb64f1a08a8a63da4965923be6af310"
   pullPolicy: IfNotPresent
 serviceAccount:
   name: aduke
