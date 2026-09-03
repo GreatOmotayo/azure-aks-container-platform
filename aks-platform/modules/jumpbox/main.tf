@@ -65,7 +65,8 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
     apt-get update
     wait_for_apt
     apt-get install -y git unzip gnupg software-properties-common
-    curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+    wait_for_apt
+    curl -sL https://aka.ms/InstallAzureCLIDeb | bash || { echo "Azure CLI install failed"; exit 1; }
     az aks install-cli --install-location /usr/local/bin/kubectl --kubelogin-install-location /usr/local/bin/kubelogin
     wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
     echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
