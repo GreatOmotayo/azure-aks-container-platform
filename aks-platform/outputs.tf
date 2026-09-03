@@ -74,5 +74,5 @@ output "registry_login_server" {
 
 output "jumpbox_public_ip" {
   description = "The public IP of the jumpbox - useful for SSH-ing in to validate DNS resolution and other post-deploy checks"
-  value = module.jumpbox.public_ip_address
+  value       = module.jumpbox.public_ip_address
 }

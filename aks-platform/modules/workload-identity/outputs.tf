@@ -10,5 +10,5 @@ output "worker_client_id" {
 
 output "aduke_workload_identity_principal_id" {
   description = "The principal ID of Aduke's workload identity"
-  value = azurerm_user_assigned_identity.aduke.principal_id
+  value       = azurerm_user_assigned_identity.aduke.principal_id
 }
