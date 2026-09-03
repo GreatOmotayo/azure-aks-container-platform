@@ -52,7 +52,7 @@ resource "azurerm_network_security_group" "jumpbox" {
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags
-  
+
   security_rule {
     name                       = "AllowSSHFromMyIP"
     priority                   = 100
