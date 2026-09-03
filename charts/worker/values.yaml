@@ -1,14 +1,13 @@
 replicaCount: 2
 
 image:
-  repository: "REPLACE_WITH_ACR_LOGIN_SERVER/worker"
-  tag: "latest"
+  repository: "omotayoaksregistry.azurecr.io/worker"
+  tag: "46fab640ebb64f1a08a8a63da4965923be6af310"
   pullPolicy: IfNotPresent
 
 serviceAccount:
   name: worker
-  azureClientId: "REPLACE_WITH_TERRAFORM_OUTPUT" # module.workload_identity.worker_client_id 
-
+  azureClientId: "b2ef8d05-20ba-480e-b9df-d92a2f6a83fd"
 healthPort: 3001
 
 resources:
