@@ -31,9 +31,6 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
   resource_group_name = var.resource_group_name
   size                = var.vm_size
   admin_username      = "azureuser"
-  lifecycle {
-    prevent_destroy = true
-  }
 
   network_interface_ids           = [azurerm_network_interface.jumpbox.id]
   disable_password_authentication = true
