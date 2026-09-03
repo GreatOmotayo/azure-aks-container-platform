@@ -71,3 +71,8 @@ output "registry_login_server" {
   description = "A real gap this automation surfaced - genuinely missing until now. Needed by charts/aduke/values.yaml and charts/worker/values.yaml's image.repository field (login_server + app name)."
   value       = module.container_registry.login_server
 }
+
+output "jumpbox_public_ip" {
+  description = "The public IP of the jumpbox - useful for SSH-ing in to validate DNS resolution and other post-deploy checks"
+  value       = module.jumpbox.public_ip_address
+}
