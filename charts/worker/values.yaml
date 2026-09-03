@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: "omotayoaksregistry.azurecr.io/worker"
-  tag: "46fab640ebb64f1a08a8a63da4965923be6af310"
+  tag: "1e880dec0f7c36e690c74d2ed4c8ccfc0530f0b4"
   pullPolicy: IfNotPresent
 
 serviceAccount:
