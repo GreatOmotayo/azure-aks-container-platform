@@ -1,14 +1,17 @@
-replicaCount: 2
+replicaCount: 2 # - actual live count is governed by the HPA below once deployed
+
 image:
   repository: "omotayoaksregistry.azurecr.io/aduke"
   tag: "46fab640ebb64f1a08a8a63da4965923be6af310"
   pullPolicy: IfNotPresent
+
 serviceAccount:
   name: aduke
   azureClientId: "671704e4-d227-4b4c-81f9-05d4483e121f"
 service:
   port: 80
-  targetPort: 3000
+  targetPort: 3000 # matches Aduke's PORT default in server.js
+
 resources:
   requests:
     cpu: 100m
@@ -16,11 +19,13 @@ resources:
   limits:
     cpu: 250m
     memory: 256Mi
+
 autoscaling:
   enabled: true
-  minReplicas: 2
-  maxReplicas: 10
+  minReplicas: 2 # matches the PDB's minAvailable - never scales below what the disruption budget already assumes
+  maxReplicas: 10 
   targetCPUUtilizationPercentage: 70
+
 probes:
   liveness:
     path: /healthz
@@ -32,18 +37,21 @@ probes:
     path: /ready
     initialDelaySeconds: 5
     periodSeconds: 10
-    timeoutSeconds: 3
+    timeoutSeconds: 5 
     failureThreshold: 3
+
 ingress:
   enabled: true
   className: nginx
-  host: aduke.local
+  host: aduke.local 
   path: /
+
 keyVault:
   secretName: aduke-storage-config
-  vaultUri: "https://omotayo-aks-kv.vault.azure.net/"
-  name: "omotayo-aks-kv"
-azureTenantId: "175d86cd-6e18-4ee9-84a6-c6b0d003ecc9"
+  name: "REPLACE_WITH_TERRAFORM_OUTPUT" # module.key_vault.vault_name - the plain vault name
+  vaultUri: "REPLACE_WITH_TERRAFORM_OUTPUT" # module.key_vault.vault_uri
+
+azureTenantId: "REPLACE_WITH_TERRAFORM_OUTPUT" # required by the SecretProviderClass parameters
+
 networkPolicy:
   ingressControllerNamespace: ingress-nginx
-  privateEndpointSubnetCidr: "10.1.1.0/24"

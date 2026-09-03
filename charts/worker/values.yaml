@@ -1,12 +1,15 @@
 replicaCount: 2
+
 image:
   repository: "omotayoaksregistry.azurecr.io/worker"
   tag: "46fab640ebb64f1a08a8a63da4965923be6af310"
   pullPolicy: IfNotPresent
+
 serviceAccount:
   name: worker
   azureClientId: "b2ef8d05-20ba-480e-b9df-d92a2f6a83fd"
 healthPort: 3001
+
 resources:
   requests:
     cpu: 250m
@@ -14,11 +17,13 @@ resources:
   limits:
     cpu: 500m
     memory: 256Mi
+
 autoscaling:
   enabled: true
   minReplicas: 2
   maxReplicas: 10
   targetCPUUtilizationPercentage: 70
+
 probes:
   liveness:
     path: /healthz
@@ -30,12 +35,21 @@ probes:
     path: /ready
     initialDelaySeconds: 5
     periodSeconds: 10
-    timeoutSeconds: 3
+    timeoutSeconds: 5
     failureThreshold: 3
+
 keyVault:
-  secretName: worker-storage-config
-  vaultUri: "https://omotayo-aks-kv.vault.azure.net/"
-  name: "omotayo-aks-kv"
-azureTenantId: "175d86cd-6e18-4ee9-84a6-c6b0d003ecc9"
+  secretName: worker-storage-config # separate Secret name from Aduke's, even though the value is identical 
+  name: "REPLACE_WITH_TERRAFORM_OUTPUT"
+  vaultUri: "REPLACE_WITH_TERRAFORM_OUTPUT"
+
+azureTenantId: "REPLACE_WITH_TERRAFORM_OUTPUT"
+
 networkPolicy:
-  privateEndpointSubnetCidr: "10.1.1.0/24"
+  # No ingressControllerNamespace here - unlike Aduke, this pod's
+  # NetworkPolicy doesn't restrict Ingress at all (see main design note
+  # above: nothing legitimately calls this pod over the network except
+  # kubelet's own probes, and restricting Ingress risks breaking those
+  # for no real security benefit).
+  # No further values needed - the sole egress ipBlock rule is a fixed
+  # 0.0.0.0/0, not templated from a variable (see templates/networkpolicy.yaml).
