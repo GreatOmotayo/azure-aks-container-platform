@@ -67,29 +67,115 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
       done
     }
 
+    install_azure_cli() {
+      local attempts=0
+      local max_attempts=5
+      until curl -sL https://aka.ms/InstallAzureCLIDeb | bash; do
+        attempts=$((attempts + 1))
+        if [ "$attempts" -ge "$max_attempts" ]; then
+          echo "Azure CLI install failed after $max_attempts attempts"
+          exit 1
+        fi
+        echo "Azure CLI install failed (attempt $attempts/$max_attempts) - waiting before retry"
+        sleep 15
+        wait_for_apt
+      done
+    }
+
+    install_helm() {
+      local attempts=0
+      local max_attempts=5
+      until curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash; do
+        attempts=$((attempts + 1))
+        if [ "$attempts" -ge "$max_attempts" ]; then
+          echo "Helm install failed after $max_attempts attempts"
+          exit 1
+        fi
+        echo "Helm install failed (attempt $attempts/$max_attempts) - waiting before retry"
+        sleep 15
+        wait_for_apt
+      done
+    }
+
     wait_for_apt
     apt-get update
     wait_for_apt
     apt-get install -y git unzip gnupg software-properties-common
     wait_for_apt
-    curl -sL https://aka.ms/InstallAzureCLIDeb | bash || { echo "Azure CLI install failed"; exit 1; }
-    az aks install-cli --install-location /usr/local/bin/kubectl --kubelogin-install-location /usr/local/bin/kubelogin
-    wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
+    install_azure_cli
+
+    install_kubectl_kubelogin() {
+      local attempts=0
+      local max_attempts=5
+      until az aks install-cli --install-location /usr/local/bin/kubectl --kubelogin-install-location /usr/local/bin/kubelogin; do
+        attempts=$((attempts + 1))
+        if [ "$attempts" -ge "$max_attempts" ]; then
+          echo "kubectl/kubelogin install failed after $max_attempts attempts"
+          exit 1
+        fi
+        echo "kubectl/kubelogin install failed (attempt $attempts/$max_attempts) - waiting before retry"
+        sleep 15
+      done
+    }
+    install_kubectl_kubelogin
+
+    fetch_hashicorp_gpg_key() {
+      local attempts=0
+      local max_attempts=5
+      until wget -O- https://apt.releases.hashicorp.com/gpg | gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg; do
+        attempts=$((attempts + 1))
+        if [ "$attempts" -ge "$max_attempts" ]; then
+          echo "HashiCorp GPG key fetch failed after $max_attempts attempts"
+          exit 1
+        fi
+        echo "HashiCorp GPG key fetch failed (attempt $attempts/$max_attempts) - waiting before retry"
+        sleep 15
+      done
+    }
+    fetch_hashicorp_gpg_key
     echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/hashicorp.list
     wait_for_apt
     apt-get update
     wait_for_apt
     apt-get install -y terraform
     wait_for_apt
-    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash || { echo "Helm install failed"; exit 1; }
+    install_helm
     gpg -k
-    gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+
+    fetch_k6_gpg_key() {
+      local attempts=0
+      local max_attempts=5
+      until gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69; do
+        attempts=$((attempts + 1))
+        if [ "$attempts" -ge "$max_attempts" ]; then
+          echo "k6 GPG key fetch failed after $max_attempts attempts"
+          exit 1
+        fi
+        echo "k6 GPG key fetch failed (attempt $attempts/$max_attempts) - waiting before retry"
+        sleep 15
+      done
+    }
+    fetch_k6_gpg_key
     echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | tee /etc/apt/sources.list.d/k6.list
     wait_for_apt
     apt-get update
     wait_for_apt
     apt-get install -y k6
-    curl -fsSL -o /tmp/velero.tar.gz https://github.com/vmware-tanzu/velero/releases/download/v1.15.0/velero-v1.15.0-linux-amd64.tar.gz
+
+    download_velero_cli() {
+      local attempts=0
+      local max_attempts=5
+      until curl -fsSL -o /tmp/velero.tar.gz https://github.com/vmware-tanzu/velero/releases/download/v1.15.0/velero-v1.15.0-linux-amd64.tar.gz; do
+        attempts=$((attempts + 1))
+        if [ "$attempts" -ge "$max_attempts" ]; then
+          echo "Velero CLI download failed after $max_attempts attempts"
+          exit 1
+        fi
+        echo "Velero CLI download failed (attempt $attempts/$max_attempts) - waiting before retry"
+        sleep 15
+      done
+    }
+    download_velero_cli
     tar -xvf /tmp/velero.tar.gz -C /tmp
     mv /tmp/velero-v1.15.0-linux-amd64/velero /usr/local/bin/velero
     rm -rf /tmp/velero.tar.gz /tmp/velero-v1.15.0-linux-amd64
