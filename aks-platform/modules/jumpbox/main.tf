@@ -89,6 +89,10 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
     apt-get update
     wait_for_apt
     apt-get install -y k6
+    curl -fsSL -o /tmp/velero.tar.gz https://github.com/vmware-tanzu/velero/releases/download/v1.15.0/velero-v1.15.0-linux-amd64.tar.gz
+    tar -xvf /tmp/velero.tar.gz -C /tmp
+    mv /tmp/velero-v1.15.0-linux-amd64/velero /usr/local/bin/velero
+    rm -rf /tmp/velero.tar.gz /tmp/velero-v1.15.0-linux-amd64
   EOF
   )
 

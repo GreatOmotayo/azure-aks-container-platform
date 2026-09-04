@@ -24,8 +24,7 @@ spec:
             create: true
             name: velero
             annotations:
-              azure.workload.identity/client-id: "42edf673-2520-4dd9-bb0b-d40164940de9"
-
+              azure.workload.identity/client-id: "REPLACE_WITH_TERRAFORM_OUTPUT"
         credentials:
           useSecret: false
 
@@ -33,9 +32,9 @@ spec:
           backupStorageLocation:
             - name: default
               provider: azure
-              bucket: "null"
+              bucket: "REPLACE_WITH_TERRAFORM_OUTPUT"
               config:
-                storageAccount: "omotayoaksstorage"
+                storageAccount: "REPLACE_WITH_TERRAFORM_OUTPUT"
                 resourceGroup: "rg-aks-app"
                 useAAD: "true"
 

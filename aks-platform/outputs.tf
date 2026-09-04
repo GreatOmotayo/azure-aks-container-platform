@@ -62,10 +62,10 @@ output "velero_identity_client_id" {
   value       = module.velero_identity.client_id
 }
 
-# output "velero_backup_container_name" {
-#   description = "Passed through to gitops/apps/velero.yaml's backupStorageLocation config"
-#   value       = module.storage.velero_backup_container_name
-# }
+output "velero_backup_container_name" {
+  description = "Passed through to gitops/apps/velero.yaml's backupStorageLocation config"
+  value       = module.storage.velero_backup_container_name
+}
 
 output "registry_login_server" {
   description = "A real gap this automation surfaced - genuinely missing until now. Needed by charts/aduke/values.yaml and charts/worker/values.yaml's image.repository field (login_server + app name)."

@@ -1,11 +1,11 @@
 replicaCount: 2
 image:
-  repository: "omotayoaksregistry.azurecr.io/worker"
-  tag: "1066c70ebcfd87dbe94d98bc43d7a94bd4895aac"
+  repository: "REPLACE_WITH_ACR_LOGIN_SERVER/worker"
+  tag: "46fab640ebb64f1a08a8a63da4965923be6af310"
   pullPolicy: IfNotPresent
 serviceAccount:
   name: worker
-  azureClientId: "da664b4d-465d-4113-8598-006a2f68f74b"
+  azureClientId: "REPLACE_WITH_TERRAFORM_OUTPUT"
 healthPort: 3001
 resources:
   requests:
@@ -34,9 +34,9 @@ probes:
     failureThreshold: 3
 keyVault:
   secretName: worker-storage-config # separate Secret name from Aduke's, even though the value is identical 
-  name: "omotayo-aks-kv"
-  vaultUri: "https://omotayo-aks-kv.vault.azure.net/"
-azureTenantId: "175d86cd-6e18-4ee9-84a6-c6b0d003ecc9"
+  name: "REPLACE_WITH_TERRAFORM_OUTPUT"
+  vaultUri: "REPLACE_WITH_TERRAFORM_OUTPUT"
+azureTenantId: "REPLACE_WITH_TERRAFORM_OUTPUT"
 networkPolicy:
 # No ingressControllerNamespace here - unlike Aduke, this pod's
 # NetworkPolicy doesn't restrict Ingress at all (see main design note
