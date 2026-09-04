@@ -25,7 +25,6 @@ spec:
             name: velero
             annotations:
               azure.workload.identity/client-id: "REPLACE_WITH_TERRAFORM_OUTPUT"
-
         credentials:
           useSecret: false
 
