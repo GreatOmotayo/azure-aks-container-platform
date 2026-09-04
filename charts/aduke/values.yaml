@@ -1,14 +1,13 @@
 replicaCount: 2 # - actual live count is governed by the HPA below once deployed
 
 image:
-  repository: "REPLACE_WITH_ACR_LOGIN_SERVER/aduke"
-  tag: "latest" # override with a Git SHA in the real CI/CD pipeline
+  repository: "omotayoaksregistry.azurecr.io/aduke"
+  tag: "46fab640ebb64f1a08a8a63da4965923be6af310"
   pullPolicy: IfNotPresent
 
 serviceAccount:
   name: aduke
-  azureClientId: "REPLACE_WITH_TERRAFORM_OUTPUT"
-
+  azureClientId: "671704e4-d227-4b4c-81f9-05d4483e121f"
 service:
   port: 80
   targetPort: 3000 # matches Aduke's PORT default in server.js
