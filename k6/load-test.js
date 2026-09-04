@@ -22,7 +22,10 @@ export const options = {
 
 export default function () {
   const res = http.post(`${TARGET_HOST}/jobs`, null, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Host': 'aduke.local',
+    },
   });
 
   const ok = check(res, {
