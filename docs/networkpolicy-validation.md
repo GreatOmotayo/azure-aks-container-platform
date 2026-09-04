@@ -8,8 +8,9 @@ apply` and both Helm charts are deployed. Record actual command output in
 the "Observed result" line under each test - this document is the skeleton
 for the eventual writeup deliverable, not the writeup itself.
 
-**Access:** run all commands from the Bastion jumpbox (`az network bastion
-ssh`), where `kubectl` is already configured against the private cluster.
+**Access:** run all commands from the jumpbox, where `kubectl` is already
+configured against the private cluster (see docs/VALIDATION-PLAN.md
+Section 0.1 for the direct SSH connection command).
 
 **Testing technique used, and why:**
 - **Ingress denial tests** use standalone `kubectl run` test pods placed in
@@ -80,10 +81,13 @@ the worker specifically has no special-cased access to Aduke.
 
 ---
 
-## Test 4 - ALLOW: Aduke can still reach its Storage/Key Vault private endpoints
+## Test 4 - ALLOW: Aduke can still reach Storage and Key Vault
 
-Confirms the egress allow-rule for the private-endpoint subnet CIDR is
-actually working, not just present in the manifest.
+Confirms the broad `0.0.0.0/0:443` egress rule actually permits reaching
+Storage/Key Vault, not just that the rule exists in the manifest. Storage
+and Key Vault are reached over their public endpoints now (see
+`docs/DECISIONS.md` Part 4) - there's no private-endpoint subnet left to
+scope a narrower rule to, so this shares the same rule as Test 5 below.
 
 ```bash
 kubectl get pods -n app -l app=aduke
@@ -102,9 +106,9 @@ proves the network path is open, which is what this test actually checks).
 
 ## Test 5 - ALLOW: Aduke can reach Entra ID for Workload Identity token exchange
 
-Directly validates the Firewall fix from earlier in this project
-(`entra-id-token-exchange` rule) actually works end-to-end, not just that
-the rule exists in Terraform.
+Validates that Workload Identity's token exchange actually works
+end-to-end over the pod's real NetworkPolicy - not just that Terraform
+created the right role assignments.
 
 ```bash
 kubectl debug -it <aduke-pod-name> -n app --image=nicolaka/netshoot --target=aduke -- \

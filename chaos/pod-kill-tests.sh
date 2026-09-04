@@ -7,7 +7,8 @@
 #      mechanism - apps/worker/src/lib/queueClient.js - NOT something
 #      Kubernetes provides on its own)
 #
-# Run this from the Bastion jumpbox, where kubectl is already configured.
+# Run this from the jumpbox, where kubectl is already configured
+# against the private cluster.
 set -euo pipefail
 
 NAMESPACE="app"
@@ -34,9 +35,16 @@ echo "Watching for 30s - confirm a NEW pod (different name) reaches Running:"
 timeout 30 kubectl get pods -n "$NAMESPACE" -l app=worker -w || true
 
 echo ""
-echo "=== Step 5: Confirm the PDB was respected during this ==="
-kubectl get pdb worker -n "$NAMESPACE"
-echo "PASS criteria: ALLOWED DISRUPTIONS should never have dropped to 0 during the kill - if it did, the PDB failed to protect against this specific disruption."
+echo "=== Step 5: Why a PDB check doesn't belong in this test ==="
+echo "PodDisruptionBudgets only govern the Eviction API - kubectl drain,"
+echo "cluster autoscaler scale-down, a rolling update. The forceful delete"
+echo "in Step 3 (--grace-period=0 --force) bypasses the Eviction API"
+echo "entirely, so the PDB has no mechanism to intervene here at all -"
+echo "checking ALLOWED DISRUPTIONS after this kill would be testing"
+echo "something the PDB was never actually positioned to prevent."
+echo "The correct place PDB enforcement IS genuinely tested is"
+echo "node-cordon-test.sh, since kubectl drain does go through the"
+echo "Eviction API."
 
 echo ""
 echo "=== Step 6: Confirm the job itself eventually completed (mechanism 2) ==="
