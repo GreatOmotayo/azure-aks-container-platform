@@ -1,11 +1,11 @@
 replicaCount: 2 # - actual live count is governed by the HPA below once deployed
 image:
-  repository: "REPLACE_WITH_ACR_LOGIN_SERVER/aduke"
+  repository: "omotayoaksregistry.azurecr.io/aduke"
   tag: "46fab640ebb64f1a08a8a63da4965923be6af310"
   pullPolicy: IfNotPresent
 serviceAccount:
   name: aduke
-  azureClientId: "REPLACE_WITH_TERRAFORM_OUTPUT"
+  azureClientId: "59f7edfa-f0da-4ee2-a37c-bcba4bd4d8e5"
 service:
   port: 80
   targetPort: 3000 # matches Aduke's PORT default in server.js
@@ -41,8 +41,8 @@ ingress:
   path: /
 keyVault:
   secretName: aduke-storage-config
-  name: "REPLACE_WITH_TERRAFORM_OUTPUT" # module.key_vault.vault_name - the plain vault name
-  vaultUri: "REPLACE_WITH_TERRAFORM_OUTPUT" # module.key_vault.vault_uri
-azureTenantId: "REPLACE_WITH_TERRAFORM_OUTPUT" # required by the SecretProviderClass parameters
+  name: "omotayo-aks-kv" # module.key_vault.vault_name - the plain vault name
+  vaultUri: "https://omotayo-aks-kv.vault.azure.net/" # module.key_vault.vault_uri
+azureTenantId: "175d86cd-6e18-4ee9-84a6-c6b0d003ecc9" # required by the SecretProviderClass parameters
 networkPolicy:
   ingressControllerNamespace: ingress-nginx
