@@ -55,8 +55,14 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
   # for cluster access the moment it's provisioned 
   custom_data = base64encode(<<-EOF
     #!/bin/bash
+    systemctl stop apt-daily.timer apt-daily-upgrade.timer 2>/dev/null || true
+    systemctl disable apt-daily.timer apt-daily-upgrade.timer 2>/dev/null || true
+    systemctl stop unattended-upgrades 2>/dev/null || true
+
     wait_for_apt() {
-      while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || fuser /var/lib/dpkg/lock >/dev/null 2>&1; do
+      while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 \
+         || fuser /var/lib/dpkg/lock >/dev/null 2>&1 \
+         || fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
         sleep 5
       done
     }
@@ -74,7 +80,15 @@ resource "azurerm_linux_virtual_machine" "jumpbox" {
     apt-get update
     wait_for_apt
     apt-get install -y terraform
-    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+    wait_for_apt
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash || { echo "Helm install failed"; exit 1; }
+    gpg -k
+    gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+    echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | tee /etc/apt/sources.list.d/k6.list
+    wait_for_apt
+    apt-get update
+    wait_for_apt
+    apt-get install -y k6
   EOF
   )
 
