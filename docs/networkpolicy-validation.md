@@ -39,6 +39,8 @@ curl -H "Host: aduke.local" http://<ingress-controller-external-or-internal-ip>/
 
 **Observed result:** _(record here)_
 
+![Test 1 screenshot](screenshots/np-01-baseline-allowed.png)
+
 ---
 
 ## Test 2 - DENY: An arbitrary pod cannot reach Aduke directly
@@ -57,6 +59,8 @@ connection refused (which would suggest the Service has no endpoints, a
 different problem) and NOT a successful response.
 
 **Observed result:** _(record here)_
+
+![Test 2 screenshot](screenshots/np-02-arbitrary-pod-denied.png)
 
 ---
 
@@ -78,6 +82,8 @@ kubectl debug -it <worker-pod-name> -n app --image=nicolaka/netshoot --target=wo
 the worker specifically has no special-cased access to Aduke.
 
 **Observed result:** _(record here)_
+
+![Test 3 screenshot](screenshots/np-03-worker-denied.png)
 
 ---
 
@@ -102,6 +108,8 @@ proves the network path is open, which is what this test actually checks).
 
 **Observed result:** _(record here)_
 
+![Test 4 screenshot](screenshots/np-04-storage-reachable.png)
+
 ---
 
 ## Test 5 - ALLOW: Aduke can reach Entra ID for Workload Identity token exchange
@@ -118,6 +126,8 @@ kubectl debug -it <aduke-pod-name> -n app --image=nicolaka/netshoot --target=adu
 **Expected result:** TLS handshake succeeds.
 
 **Observed result:** _(record here)_
+
+![Test 5 screenshot](screenshots/np-05-entra-id-reachable.png)
 
 ---
 
@@ -139,6 +149,8 @@ kubectl debug -it <aduke-pod-name> -n app --image=nicolaka/netshoot --target=adu
 
 **Observed result:** _(record here)_
 
+![Test 6 screenshot](screenshots/np-06-port-80-denied.png)
+
 ---
 
 ## Test 7 - ALLOW: DNS resolution works
@@ -154,6 +166,8 @@ kubectl debug -it <aduke-pod-name> -n app --image=nicolaka/netshoot --target=adu
 **Expected result:** A resolved IP address, no timeout.
 
 **Observed result:** _(record here)_
+
+![Test 7 screenshot](screenshots/np-07-dns-resolves.png)
 
 ---
 
