@@ -193,25 +193,75 @@ Every phase of this project has a real, runnable validation procedure —
 not just a description of what *should* work:
 
 - [`docs/VALIDATION-PLAN.md`](docs/VALIDATION-PLAN.md) — the master procedure, covering infrastructure, GitOps sync, the application smoke test, HPA/Cluster Autoscaler under load, chaos testing, Velero backup, and image scanning, with explicit screenshot markers throughout
-- [`docs/networkpolicy-validation.md`](docs/networkpolicy-validation.md) — the detailed deny-and-verify procedure for pod-to-pod traffic restriction
+- [`docs/networkpolicy-validation.md`](docs/networkpolicy-validation.md) — the detailed deny-and-verify procedure for pod-to-pod traffic restriction, with real screenshots for every one of the 7 tests
+
+### Evidence gallery
+
+**Infrastructure stood up cleanly:**
+
+| | |
+|---|---|
+| ![Terraform apply success](docs/screenshots/02-terraform-apply-success.png) | ![Private cluster confirmed](docs/screenshots/02-private-cluster-confirmed.png) |
+| ![DNS resolution](docs/screenshots/02-dns-resolution.png) | ![Storage and secret confirmed](docs/screenshots/02-storage-and-secret-confirmed.png) |
+
+**GitOps bootstrap and self-heal:**
+
+| | |
+|---|---|
+| ![kubectl get nodes](docs/screenshots/04-kubectl-get-nodes.png) | ![ArgoCD pods running](docs/screenshots/04-argocd-pods-running.png) |
+| ![All Applications created](docs/screenshots/04-all-applications-created.png) | ![Self-heal reverted replicas](docs/screenshots/04-selfheal-reverted-replicas.png) |
+
+**Application smoke test — a real job, submitted and completed:**
+
+| | |
+|---|---|
+| ![Job submitted](docs/screenshots/05-job-submitted.png) | ![Job completed](docs/screenshots/05-job-completed.png) |
+
+**Velero backup — taken, stored, and restored:**
+
+| | | |
+|---|---|---|
+| ![Velero healthy](docs/screenshots/08-velero-healthy.png) | ![Backup completed](docs/screenshots/08-backup-completed.png) | ![Restore successful](docs/screenshots/08-restore-successful.png) |
+
+**Trivy actually gates the pipeline, not just runs in it:**
+
+| | |
+|---|---|
+| ![Scan step runs in order](docs/screenshots/09-scan-step-in-order.png) | ![A real finding blocks the push](docs/screenshots/09-scan-blocks-push.png) |
 
 ---
 
 ## Load test results
 
-*(To be filled in once `k6/load-test.js` has been run against a live
-deployment — replica-count-over-time data, p95 latency, and the
-scale-up/scale-down timeline captured per
-`docs/VALIDATION-PLAN.md` Section 5.)*
+**Baseline, before load:**
+
+![HPA and node baseline before load](docs/screenshots/06-baseline-before-load.png)
+
+**HPA scaling mid-load** — worker's replica count climbing well past
+baseline as real, CPU-bound job processing kicks in:
+
+![HPA scaling during sustained load](docs/screenshots/06-hpa-scaling-mid-load.png)
+
+**k6's final summary** — the full run, including `jobs_created`,
+`http_req_duration`, and check pass rate:
+
+![k6 final summary](docs/screenshots/06-k6-final-summary.png)
 
 ---
 
 ## Resilience test results
 
-*(To be filled in once `chaos/pod-kill-test.sh` and
-`chaos/node-cordon-test.sh` have been run — see
-`docs/VALIDATION-PLAN.md` Section 6 for the exact procedure and what
-"pass" looks like for each.)*
+**Pod-kill recovery** — a worker pod forcefully killed mid-job; a new
+replica reschedules, and the in-flight job still completes via the
+Storage Queue's visibility-timeout mechanism:
+
+![Pod kill recovery](docs/screenshots/07-pod-kill-recovery.png)
+
+**Node drain recovery** — a real node cordoned and drained under load;
+every evicted pod reschedules onto a different node, with the
+PodDisruptionBudget respected throughout:
+
+![Node drain recovery](docs/screenshots/07-node-drain-recovery.png)
 
 ---
 
