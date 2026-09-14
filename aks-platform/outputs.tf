@@ -49,7 +49,7 @@ output "storage_account_name" {
 
 output "vault_id" {
   description = "Vault ID required by observability project"
-  value = module.key_vault.vault_id
+  value       = module.key_vault.vault_id
 }
 
 output "key_vault_name" {
