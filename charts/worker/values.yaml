@@ -5,7 +5,7 @@ image:
   pullPolicy: IfNotPresent
 serviceAccount:
   name: worker
-  azureClientId: "deee6718-219c-4687-b947-3430d9033564"
+  azureClientId: "2afb59c7-cf10-450d-98b8-252eca7767cb"
 healthPort: 3001
 resources:
   requests:
