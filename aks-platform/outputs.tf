@@ -32,6 +32,11 @@ output "aduke_workload_identity_client_id" {
   value       = module.workload_identity.aduke_client_id
 }
 
+output "aduke_workload_identity_principal_id" {
+  description = "Object (principal) ID of Aduke's workload identity, used by other repos to grant this identity RBAC roles on resources it doesn't own"
+  value       = module.workload_identity.aduke_workload_identity_principal_id
+}
+
 output "worker_workload_identity_client_id" {
   description = "Referenced by charts/worker/templates/serviceaccount.yaml's azure.workload.identity/client-id annotation"
   value       = module.workload_identity.worker_client_id
@@ -40,6 +45,11 @@ output "worker_workload_identity_client_id" {
 output "storage_account_name" {
   description = "Not a secret - the real value to source into both apps' STORAGE_ACCOUNT_NAME config via the Key Vault CSI driver"
   value       = module.storage.storage_account_name
+}
+
+output "vault_id" {
+  description = "Vault ID required by observability project"
+  value = module.key_vault.vault_id
 }
 
 output "key_vault_name" {
@@ -76,3 +86,5 @@ output "jumpbox_public_ip" {
   description = "The public IP of the jumpbox - useful for SSH-ing in to validate DNS resolution and other post-deploy checks"
   value       = module.jumpbox.public_ip_address
 }
+
+
