@@ -13,7 +13,8 @@ if (!connectionString) {
   );
 } else {
   const { NodeSDK } = require('@opentelemetry/sdk-node');
-  const { getNodeAutoInstrumentations } = require('@opentelemetry/auto-instrumentations-node');
+  const { HttpInstrumentation } = require('@opentelemetry/instrumentation-http');
+  const { ExpressInstrumentation } = require('@opentelemetry/instrumentation-express');
   const { resourceFromAttributes } = require('@opentelemetry/resources');
   const { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } = require('@opentelemetry/semantic-conventions');
   const { AzureMonitorTraceExporter, AzureMonitorMetricExporter } = require('@azure/monitor-opentelemetry-exporter');
@@ -41,15 +42,8 @@ if (!connectionString) {
       exportIntervalMillis: 15000,
     }),
     instrumentations: [
-      getNodeAutoInstrumentations({
-        '@opentelemetry/instrumentation-fs': { enabled: false },
-      }),
+      new HttpInstrumentation(),
+      new ExpressInstrumentation(),
     ],
-  });
-
-  sdk.start();
-
-  process.on('SIGTERM', () => {
-    sdk.shutdown().finally(() => process.exit(0));
   });
 }
