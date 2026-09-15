@@ -47,4 +47,4 @@ azureTenantId: "175d86cd-6e18-4ee9-84a6-c6b0d003ecc9" # required by the SecretPr
 networkPolicy:
   ingressControllerNamespace: ingress-nginx
 appInsights:
-  enabled: false
+  enabled: true
