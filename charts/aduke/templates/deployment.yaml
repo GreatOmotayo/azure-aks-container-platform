@@ -33,6 +33,13 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.keyVault.secretName }}
                   key: storageAccountName
+            {{- if .Values.appInsights.enabled }}
+            - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: aduke-app-insights-credentials
+                  key: appInsightsConnectionString
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           livenessProbe:
@@ -55,6 +62,11 @@ spec:
             - name: secrets-store-inline
               mountPath: /mnt/secrets-store
               readOnly: true
+          {{- if .Values.appInsights.enabled }}
+            - name: app-insights-secret
+              mountPath: "/mnt/secrets-store-app-insights"
+              readOnly: true
+          {{- end }}
        volumes:
         - name: secrets-store-inline
           csi: 
@@ -62,3 +74,11 @@ spec:
             readOnly: true
             volumeAttributes:
               secretProviderClass: aduke-spc
+        {{- if .Values.appInsights.enabled }}
+        - name: app-insights-secret
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: aduke-app-insights-spc
+        {{- end }}
