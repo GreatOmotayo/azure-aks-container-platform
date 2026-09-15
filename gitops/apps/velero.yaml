@@ -24,7 +24,7 @@ spec:
             create: true
             name: velero
             annotations:
-              azure.workload.identity/client-id: "15d90a56-5935-406d-9611-bd8eea88ed7f"
+              azure.workload.identity/client-id: "900a461e-c2e5-4f59-9ce5-7ea4a5db6854"
         credentials:
           useSecret: false
 
