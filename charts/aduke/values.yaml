@@ -37,7 +37,7 @@ probes:
 ingress:
   enabled: true
   className: nginx
-  host: aduke-demo.centralus.cloudapp.azure.com 
+  host: aduke-demo.centralus.cloudapp.azure.com
   path: /
 keyVault:
   secretName: aduke-storage-config
