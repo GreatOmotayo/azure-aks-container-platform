@@ -5,7 +5,7 @@ image:
   pullPolicy: IfNotPresent
 serviceAccount:
   name: aduke
-  azureClientId: "4a0b5985-5beb-46fd-b206-91f69f781c8a"
+  azureClientId: "ed2c0703-99bf-4841-8502-37159eaced96"
 service:
   port: 80
   targetPort: 3000 # matches Aduke's PORT default in server.js
@@ -37,7 +37,7 @@ probes:
 ingress:
   enabled: true
   className: nginx
-  host: aduke-demo.centralus.cloudapp.azure.com 
+  host: aduke-demo.centralus.cloudapp.azure.com
   path: /
 keyVault:
   secretName: aduke-storage-config
