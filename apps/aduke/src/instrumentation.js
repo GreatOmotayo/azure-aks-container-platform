@@ -46,4 +46,7 @@ if (!connectionString) {
       new ExpressInstrumentation(),
     ],
   });
+  sdk.start();
+
+  console.log('[instrumentation] OpenTelemetry started');
 }
