@@ -1,7 +1,7 @@
 replicaCount: 2 # - actual live count is governed by the HPA below once deployed
 image:
   repository: "omotayoaksregistry.azurecr.io/aduke"
-  tag: "48dde1f2caa2083dec5d2009de3b04f39a1936aa"
+  tag: "1b4a71c3f57091d88bfae3e0c8ddd31e9ef24ed2"
   pullPolicy: IfNotPresent
 serviceAccount:
   name: aduke
