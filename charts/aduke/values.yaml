@@ -5,7 +5,7 @@ image:
   pullPolicy: IfNotPresent
 serviceAccount:
   name: aduke
-  azureClientId: "a6d8cebb-8108-41f7-ab04-1667b7a17d0b"
+  azureClientId: "380ba895-85ad-455c-9bc1-9158d4dcd8ea"
 service:
   port: 80
   targetPort: 3000 # matches Aduke's PORT default in server.js
